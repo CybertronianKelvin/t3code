@@ -1,0 +1,53 @@
+name: Patched x64 DMG
+
+# Builds the macOS Intel (x64) desktop DMG for this fork's patched build on a
+# GitHub-hosted macOS runner (Xcode + Rust are preinstalled there), so no local
+# toolchain or disk space is needed. The DMG is uploaded as a run artifact.
+# Unsigned/ad-hoc (no Apple secrets on a fork) — clear quarantine after install.
+
+on:
+  push:
+    branches: [feat/expand-work-log-by-default]
+  workflow_dispatch:
+
+jobs:
+  build-mac-x64:
+    runs-on: macos-13 # Intel/x64 runner to match the x64 app
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install vp (Vite+)
+        run: |
+          curl -fsSL https://vite.plus | bash
+
+      - name: Toolchain check
+        run: |
+          . "$HOME/.config/vite-plus/env"
+          vp --version
+          cargo --version || true
+          rustup target add x86_64-apple-darwin || true
+          xcodebuild -version || true
+
+      - name: Install dependencies
+        run: |
+          . "$HOME/.config/vite-plus/env"
+          vp i
+
+      - name: Build x64 DMG
+        run: |
+          . "$HOME/.config/vite-plus/env"
+          . "$HOME/.cargo/env" 2>/dev/null || true
+          vp run dist:desktop:dmg:x64
+
+      - name: Collect DMG
+        run: |
+          mkdir -p out
+          find . -name "*.dmg" -not -path "*/node_modules/*" -exec cp {} out/ \;
+          ls -la out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: t3code-patched-x64-dmg
+          path: out/*.dmg
+          if-no-files-found: error
