@@ -364,6 +364,14 @@ export const SETTINGS_SEARCH_ITEMS = [
     searchTerms: ["latex tex katex equations formulas markdown"],
   },
   {
+    id: "work-log-expanded",
+    title: "Expand work log by default",
+    to: "/settings/appearance",
+    searchTerms: [
+      "reasoning thinking thought tool output expand collapse work log activity transparency show steps",
+    ],
+  },
+  {
     id: "panel-animations",
     title: "Panel animations",
     to: "/settings/appearance",

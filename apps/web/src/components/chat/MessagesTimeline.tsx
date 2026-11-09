@@ -150,6 +150,7 @@ function timelineListStateFor(identity: string): {
     workGroupViewState: rememberedPosition?.disclosures?.workGroupState ?? {
       scrollPositions: new Map(),
       expandedEntries: new Set(),
+      collapsedEntries: new Set(),
     },
   };
 }
@@ -551,6 +552,9 @@ const ConversationTimeline = memo(function ConversationTimeline({
   }
 
   const preferredToolCallVisibility = useClientSettings((settings) => settings.toolCallVisibility);
+  const workLogRowsExpandedByDefault = useClientSettings(
+    (settings) => settings.workLogRowsExpandedByDefault,
+  );
   const toolCallVisibility =
     findActive && preferredToolCallVisibility === "zen" ? "hideAll" : preferredToolCallVisibility;
   const revealedMessageId = citationRequest?.citation.messageId ?? null;
@@ -994,6 +998,7 @@ const ConversationTimeline = memo(function ConversationTimeline({
     citationRequest: readyCitationRequest,
     listRef,
     timestampFormat,
+    workLogRowsExpandedByDefault,
     routeThreadKey,
     threadRef: citationThreadRef,
     markdownCwd,

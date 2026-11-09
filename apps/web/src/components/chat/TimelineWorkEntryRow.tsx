@@ -186,15 +186,27 @@ function WorkEntryLogRow(props: WorkEntryRowProps) {
       ? notificationChildThreadId(workEntry.projectedItem.item.source)
       : undefined;
   const groupView = use(WorkGroupViewCtx);
-  const [expanded, setExpanded] = useState(
-    () => groupView?.state.expandedEntries.has(workEntry.id) ?? false,
-  );
+  // Rows normally start collapsed. With "expand work log by default" on, reasoning
+  // and tool rows start open so the live thinking and tool output are visible as a
+  // run happens. A manual expand/collapse is remembered per row (expandedEntries /
+  // collapsedEntries) so a recycled row in the virtualized list keeps the user's
+  // choice instead of snapping back to the default.
+  const [expanded, setExpanded] = useState(() => {
+    if (groupView?.state.expandedEntries.has(workEntry.id)) return true;
+    if (groupView?.state.collapsedEntries.has(workEntry.id)) return false;
+    return ctx.workLogRowsExpandedByDefault;
+  });
   const toggleExpanded = () => {
     const next = !expanded;
     if (groupView) {
       groupView.onToggleEntry(!next);
-      if (next) groupView.state.expandedEntries.add(workEntry.id);
-      else groupView.state.expandedEntries.delete(workEntry.id);
+      if (next) {
+        groupView.state.expandedEntries.add(workEntry.id);
+        groupView.state.collapsedEntries.delete(workEntry.id);
+      } else {
+        groupView.state.expandedEntries.delete(workEntry.id);
+        groupView.state.collapsedEntries.add(workEntry.id);
+      }
     } else {
       props.onToggleEntry?.(!next);
     }

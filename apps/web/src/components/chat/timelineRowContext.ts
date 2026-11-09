@@ -52,6 +52,8 @@ export interface TimelineRowSharedState {
   citationRequest: AssistantCitationTarget | null;
   listRef: React.RefObject<LegendListRef | null>;
   timestampFormat: TimestampFormat;
+  /** Start work-log rows (reasoning + tools) expanded instead of collapsed. */
+  workLogRowsExpandedByDefault: boolean;
   routeThreadKey: string;
   threadRef: ScopedThreadRef | null;
   markdownCwd: string | undefined;
@@ -117,6 +119,10 @@ export const TimelineRowActivityCtx = createContext<TimelineRowActivityState>(nu
 export interface WorkGroupViewState {
   scrollPositions: Map<string, WorkGroupScrollAnchor>;
   expandedEntries: Set<string>;
+  // Rows the user explicitly collapsed. Tracked separately from expandedEntries so
+  // that, when rows expand by default, a manual collapse survives list recycling
+  // (absence from both sets means "use the default").
+  collapsedEntries: Set<string>;
 }
 
 export const WorkGroupViewCtx = createContext<{

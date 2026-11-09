@@ -348,6 +348,33 @@ export function AppearanceSettingsPanel() {
             />
           }
         />
+        <SettingsRow
+          {...searchableSetting("work-log-expanded")}
+          description="Start reasoning and tool rows expanded, so the live thinking and tool output show as a run happens without opening each row. Turn off for the compact one-line view."
+          resetAction={
+            settings.workLogRowsExpandedByDefault !==
+            DEFAULT_UNIFIED_SETTINGS.workLogRowsExpandedByDefault ? (
+              <SettingResetButton
+                label="expand work log by default"
+                onClick={() =>
+                  updateSettings({
+                    workLogRowsExpandedByDefault:
+                      DEFAULT_UNIFIED_SETTINGS.workLogRowsExpandedByDefault,
+                  })
+                }
+              />
+            ) : null
+          }
+          control={
+            <Switch
+              checked={settings.workLogRowsExpandedByDefault}
+              onCheckedChange={(checked) =>
+                updateSettings({ workLogRowsExpandedByDefault: Boolean(checked) })
+              }
+              aria-label="Expand work log by default"
+            />
+          }
+        />
         <AdvancedSettings
           targetIds={[
             searchableSetting("panel-animations").id,
