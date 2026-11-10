@@ -1507,6 +1507,7 @@ export function deriveMessagesTimelineRows(input: {
   expandedRunIds?: ReadonlySet<RunId>;
   expandedAttemptIds?: ReadonlySet<RunAttemptId>;
   expandedWorkGroupIds?: ReadonlySet<string>;
+  workLogExpandedByDefault?: boolean;
   isWorking: boolean;
   /** Native subagent work has no app run; runless entries form the live response. */
   runlessWorkActive?: boolean;
@@ -1520,6 +1521,15 @@ export function deriveMessagesTimelineRows(input: {
   revealedMessageId?: MessageId | null;
 }): MessagesTimelineRow[] {
   const timelineEntries = timelineRowEntries(input);
+  // With "expand work log by default" on, work groups start expanded so a finished turn
+  // stays fully open for review (every reasoning and tool row visible). expandedWorkGroupIds
+  // then records the groups the user has toggled *away* from that default, so a manual
+  // collapse still sticks. When the setting is off, behaviour is unchanged (default collapsed).
+  const workGroupDefaultExpanded = input.workLogExpandedByDefault ?? false;
+  const isWorkGroupExpanded = (groupId: string) => {
+    const toggled = input.expandedWorkGroupIds?.has(groupId) ?? false;
+    return workGroupDefaultExpanded ? !toggled : toggled;
+  };
   const isPendingApproval = (entry: WorkLogEntry) => {
     const item = entry.projectedItem?.item;
     return (
@@ -1684,7 +1694,7 @@ export function deriveMessagesTimelineRows(input: {
             entry: (latestRunningToolEntry ?? latestVisibleToolEntry).entry,
             groupedEntries: visibleActiveToolEntries.map((entry) => entry.entry),
             groupId,
-            expanded: input.expandedWorkGroupIds?.has(groupId) ?? false,
+            expanded: isWorkGroupExpanded(groupId),
             active: latestToolKeepsActivityLive,
             ...(latestThoughtEntry ? { thought: latestThoughtEntry.entry } : {}),
           };
@@ -1975,7 +1985,7 @@ export function deriveMessagesTimelineRows(input: {
         const activeInProgressToolEntries = visibleGroupedEntries.filter(workEntryIsInActiveRun);
         if (activeInProgressToolEntries.length > 0) {
           const groupId = workGroupId(timelineEntry.id);
-          const expanded = input.expandedWorkGroupIds?.has(groupId) ?? false;
+          const expanded = isWorkGroupExpanded(groupId);
           const latestActiveToolEntry = activeInProgressToolEntries.at(-1)!;
           nextRows.push({
             kind: "work-live",
@@ -2011,7 +2021,7 @@ export function deriveMessagesTimelineRows(input: {
           });
         } else {
           const groupId = workGroupId(timelineEntry.id);
-          const expanded = input.expandedWorkGroupIds?.has(groupId) ?? false;
+          const expanded = isWorkGroupExpanded(groupId);
           const summaryKind = toolGroupSummaryKind(visibleGroupedEntries);
           const primarySourceEntry = visibleGroupedEntries.find(
             (entry) => entry.toolSource !== undefined,
@@ -2235,7 +2245,7 @@ export function deriveMessagesTimelineRows(input: {
     const failedGroupAnchor = latestToolFailed ? activeWorkAnchor : undefined;
     if (failedGroupAnchor) {
       const groupId = workGroupId(failedGroupAnchor.id);
-      const expanded = input.expandedWorkGroupIds?.has(groupId) ?? false;
+      const expanded = isWorkGroupExpanded(groupId);
       nextRows.push({
         kind: "thinking",
         id: LIVE_ACTIVITY_ROW_ID,

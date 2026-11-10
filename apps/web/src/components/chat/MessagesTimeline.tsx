@@ -661,6 +661,7 @@ const ConversationTimeline = memo(function ConversationTimeline({
     expandedRunIds: visibleExpandedRunIds,
     expandedAttemptIds: visibleExpandedAttemptIds,
     expandedWorkGroupIds,
+    workLogExpandedByDefault: workLogRowsExpandedByDefault,
     isWorking,
     runlessWorkActive,
     activeTurnStartedAt,
