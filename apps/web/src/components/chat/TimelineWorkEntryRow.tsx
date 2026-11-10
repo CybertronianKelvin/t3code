@@ -24,7 +24,7 @@ import {
   turnItemNeedsDetailFetch,
 } from "@t3tools/client-runtime/work-log/item-detail";
 import { claudeSkillInvocation } from "@t3tools/shared/toolActivity";
-import { memo, use, useState, type KeyboardEvent } from "react";
+import { memo, use, useEffect, useState, type KeyboardEvent } from "react";
 import {
   workEntryDisplayIndicatesToolFailure,
   workEntrySignalsSevereFailure,
@@ -196,6 +196,16 @@ function WorkEntryLogRow(props: WorkEntryRowProps) {
     if (groupView?.state.collapsedEntries.has(workEntry.id)) return false;
     return ctx.workLogRowsExpandedByDefault;
   });
+  // The virtualized list recycles a row component with a new entry instead of
+  // remounting it, so the useState initializer above does not re-run and a recycled
+  // row would keep the previous entry's state. Re-resolve when the row shows a
+  // different entry, or when the default changes, so new rows honor "expand work log
+  // by default" and a live toggle updates rows the user has not manually touched.
+  useEffect(() => {
+    if (groupView?.state.expandedEntries.has(workEntry.id)) setExpanded(true);
+    else if (groupView?.state.collapsedEntries.has(workEntry.id)) setExpanded(false);
+    else setExpanded(ctx.workLogRowsExpandedByDefault);
+  }, [groupView, workEntry.id, ctx.workLogRowsExpandedByDefault]);
   const toggleExpanded = () => {
     const next = !expanded;
     if (groupView) {
