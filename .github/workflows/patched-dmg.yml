@@ -12,8 +12,8 @@ on:
 
 jobs:
   build-mac-x64:
-    runs-on: macos-13 # Intel/x64 runner to match the x64 app
-    timeout-minutes: 90
+    runs-on: macos-15-intel # Intel/x64 runner to match the x64 app (macos-13 was retired)
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
 
