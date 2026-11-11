@@ -112,7 +112,7 @@ export function ThreadReadLabel({
 }
 
 const toolCallExpandedBodyClassName =
-  "max-h-64 cursor-text overflow-auto whitespace-pre-wrap break-words font-mono text-secondary-label text-(length:--font-size-code,var(--text-2xs)) leading-relaxed select-text";
+  "cursor-text whitespace-pre-wrap break-words font-mono text-secondary-label text-(length:--font-size-code,var(--text-2xs)) leading-relaxed select-text";
 
 const stopRowToggle = (e: { stopPropagation: () => void }) => e.stopPropagation();
 
@@ -126,7 +126,9 @@ export function ReasoningTraceContent({ entries }: { entries: ReadonlyArray<Time
       {entries.map((entry) => (
         <ChatMarkdown
           key={entry.id}
-          className="text-foreground"
+          // Dimmed so a thought reads as secondary — the eye isn't pulled to it
+          // over the assistant's actual message.
+          className="text-muted-foreground"
           text={entry.detail ?? ""}
           cwd={ctx.markdownCwd}
           threadRef={ctx.threadRef ?? undefined}

@@ -65,7 +65,9 @@ export function CommandOutputPanel(props: {
           followRef.current =
             element.scrollHeight - element.scrollTop - element.clientHeight <= FOLLOW_SLACK_PX;
         }}
-        className="max-h-80 overflow-auto text-muted-foreground"
+        // Full height, no vertical scroll box; keep horizontal scroll so a long
+        // terminal line can't blow out the row width.
+        className="overflow-x-auto text-muted-foreground"
       >
         {spans.map((span, index) =>
           span.style === null ? (
