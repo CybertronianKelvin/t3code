@@ -145,6 +145,20 @@ export const GlassOpacity = Schema.Int.check(
 export type GlassOpacity = typeof GlassOpacity.Type;
 const DEFAULT_GLASS_OPACITY: GlassOpacity = 80;
 
+// How bright the work log's reasoning ("thinking") text is, as a percentage.
+// Lower dims it so a thought reads as secondary; 100 leaves it at the muted
+// base colour. Applied as opacity on the reasoning text.
+export const MIN_THINKING_TEXT_OPACITY = 25;
+export const MAX_THINKING_TEXT_OPACITY = 100;
+export const ThinkingTextOpacity = Schema.Int.check(
+  Schema.isBetween({
+    minimum: MIN_THINKING_TEXT_OPACITY,
+    maximum: MAX_THINKING_TEXT_OPACITY,
+  }),
+);
+export type ThinkingTextOpacity = typeof ThinkingTextOpacity.Type;
+const DEFAULT_THINKING_TEXT_OPACITY: ThinkingTextOpacity = 70;
+
 export const MIN_APPEARANCE_CONTRAST = 50;
 export const MAX_APPEARANCE_CONTRAST = 200;
 export const AppearanceContrast = Schema.Int.check(
@@ -579,6 +593,10 @@ export const ClientSettingsSchema = Schema.Struct({
   // so the live thinking and tool output are visible without opening each row.
   workLogRowsExpandedByDefault: Schema.Boolean.pipe(
     Schema.withDecodingDefault(Effect.succeed(true)),
+  ),
+  // How bright the work log's reasoning text is (percentage); lower dims it.
+  thinkingTextOpacity: ThinkingTextOpacity.pipe(
+    Schema.withDecodingDefault(Effect.succeed(DEFAULT_THINKING_TEXT_OPACITY)),
   ),
 });
 export type ClientSettings = typeof ClientSettingsSchema.Type;
@@ -2066,5 +2084,6 @@ export const ClientSettingsPatch = Schema.Struct({
   wordWrap: Schema.optionalKey(Schema.Boolean),
   mathRenderingEnabled: Schema.optionalKey(Schema.Boolean),
   workLogRowsExpandedByDefault: Schema.optionalKey(Schema.Boolean),
+  thinkingTextOpacity: Schema.optionalKey(ThinkingTextOpacity),
 });
 export type ClientSettingsPatch = typeof ClientSettingsPatch.Type;

@@ -9,9 +9,11 @@ import {
   MAX_APPEARANCE_CONTRAST,
   MAX_GLASS_OPACITY,
   MAX_PANEL_ANIMATION_DURATION_MS,
+  MAX_THINKING_TEXT_OPACITY,
   MIN_APPEARANCE_CONTRAST,
   MIN_GLASS_OPACITY,
   MIN_PANEL_ANIMATION_DURATION_MS,
+  MIN_THINKING_TEXT_OPACITY,
 } from "@t3tools/contracts/settings";
 import {
   resolveSidebarStageBackdropVariant,
@@ -133,6 +135,13 @@ export function AppearanceSettingsPanel() {
   const appearanceContrastSliderStyle = {
     "--settings-slider-progress": `${appearanceContrastRatio * 100}%`,
     "--settings-slider-fill-offset": `${0.5 - appearanceContrastRatio}rem`,
+  } as CSSProperties;
+  const thinkingTextOpacityRatio =
+    (settings.thinkingTextOpacity - MIN_THINKING_TEXT_OPACITY) /
+    (MAX_THINKING_TEXT_OPACITY - MIN_THINKING_TEXT_OPACITY);
+  const thinkingTextOpacitySliderStyle = {
+    "--settings-slider-progress": `${thinkingTextOpacityRatio * 100}%`,
+    "--settings-slider-fill-offset": `${0.5 - thinkingTextOpacityRatio}rem`,
   } as CSSProperties;
   const panelAnimationDurationRatio =
     (settings.panelAnimationDurationMs - MIN_PANEL_ANIMATION_DURATION_MS) /
@@ -373,6 +382,53 @@ export function AppearanceSettingsPanel() {
               }
               aria-label="Expand work log by default"
             />
+          }
+        />
+        <SettingsRow
+          {...searchableSetting("thinking-text-opacity")}
+          description="How bright the work log's reasoning (thinking) text is. Lower dims it so a thought reads as secondary to the assistant's actual message."
+          resetAction={
+            settings.thinkingTextOpacity !== DEFAULT_UNIFIED_SETTINGS.thinkingTextOpacity ? (
+              <SettingResetButton
+                label="thinking brightness"
+                onClick={() =>
+                  updateSettings({
+                    thinkingTextOpacity: DEFAULT_UNIFIED_SETTINGS.thinkingTextOpacity,
+                  })
+                }
+              />
+            ) : null
+          }
+          control={
+            <div className="flex w-full items-center gap-3 sm:w-52">
+              <output
+                className="min-w-12 rounded-md bg-muted px-2 py-1 text-center font-mono text-xs font-medium tabular-nums text-foreground"
+                htmlFor="thinking-text-opacity"
+              >
+                {settings.thinkingTextOpacity}%
+              </output>
+              <input
+                aria-label="Thinking brightness"
+                className="settings-slider min-w-0 flex-1"
+                id="thinking-text-opacity"
+                max={MAX_THINKING_TEXT_OPACITY}
+                min={MIN_THINKING_TEXT_OPACITY}
+                onChange={(event) => {
+                  const thinkingTextOpacity = Number(event.currentTarget.value);
+                  if (
+                    Number.isInteger(thinkingTextOpacity) &&
+                    thinkingTextOpacity >= MIN_THINKING_TEXT_OPACITY &&
+                    thinkingTextOpacity <= MAX_THINKING_TEXT_OPACITY
+                  ) {
+                    updateSettings({ thinkingTextOpacity });
+                  }
+                }}
+                step={5}
+                style={thinkingTextOpacitySliderStyle}
+                type="range"
+                value={settings.thinkingTextOpacity}
+              />
+            </div>
           }
         />
         <AdvancedSettings

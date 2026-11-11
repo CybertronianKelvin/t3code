@@ -44,6 +44,7 @@ import {
   workEntryReadOutput,
 } from "./MessagesTimeline.logic";
 import { cn } from "~/lib/utils";
+import { useClientSettings } from "~/hooks/useSettings";
 import { formatUpcomingTimestamp } from "../../timestampFormat";
 import { FetchedToolOutput, V2ItemInspector } from "./V2ItemInspector";
 import { SubagentNotificationLink } from "./V2LifecycleRow";
@@ -119,26 +120,29 @@ const stopRowToggle = (e: { stopPropagation: () => void }) => e.stopPropagation(
 export function ReasoningTraceContent({ entries }: { entries: ReadonlyArray<TimelineWorkEntry> }) {
   const ctx = use(TimelineRowCtx);
   const { isWorking, latestRunId } = use(TimelineRowActivityCtx);
+  // Dim the thought so it reads as secondary to the assistant's actual message.
+  // The base is already the muted colour; this opacity (a user setting) dims it
+  // further, and lets the user dial it anywhere from faint to full brightness.
+  const thinkingOpacity = useClientSettings((settings) => settings.thinkingTextOpacity);
   const isStreaming = (entry: TimelineWorkEntry) =>
     isWorking && entry.runId === latestRunId && entry.toolLifecycleStatus === "inProgress";
   return (
     <WorkLogDetails kind="reasoning" followLive={entries.some(isStreaming)}>
       {entries.map((entry) => (
-        <ChatMarkdown
-          key={entry.id}
-          // Dimmed so a thought reads as secondary — the eye isn't pulled to it
-          // over the assistant's actual message.
-          className="text-muted-foreground"
-          text={entry.detail ?? ""}
-          cwd={ctx.markdownCwd}
-          threadRef={ctx.threadRef ?? undefined}
-          skills={ctx.skills}
-          isStreaming={isStreaming(entry)}
-          headingLevelOffset={MESSAGE_HEADING_LEVEL}
-          onUseArtifactTemplate={ctx.onUseArtifactTemplate}
-          onImageExpand={ctx.onImageExpand}
-          lineBreaks
-        />
+        <div key={entry.id} style={{ opacity: thinkingOpacity / 100 }}>
+          <ChatMarkdown
+            className="text-muted-foreground"
+            text={entry.detail ?? ""}
+            cwd={ctx.markdownCwd}
+            threadRef={ctx.threadRef ?? undefined}
+            skills={ctx.skills}
+            isStreaming={isStreaming(entry)}
+            headingLevelOffset={MESSAGE_HEADING_LEVEL}
+            onUseArtifactTemplate={ctx.onUseArtifactTemplate}
+            onImageExpand={ctx.onImageExpand}
+            lineBreaks
+          />
+        </div>
       ))}
     </WorkLogDetails>
   );
