@@ -372,6 +372,12 @@ export const SETTINGS_SEARCH_ITEMS = [
     ],
   },
   {
+    id: "thinking-text-opacity",
+    title: "Thinking brightness",
+    to: "/settings/appearance",
+    searchTerms: ["reasoning thinking thought dim dimmed muted faint opacity brightness work log"],
+  },
+  {
     id: "panel-animations",
     title: "Panel animations",
     to: "/settings/appearance",
