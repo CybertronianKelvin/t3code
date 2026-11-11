@@ -308,7 +308,10 @@ export {
 } from "./preview.ts";
 export const BrowserLinkTarget = Schema.Literals(["system", "app"]);
 export type BrowserLinkTarget = typeof BrowserLinkTarget.Type;
-export const DEFAULT_BROWSER_LINK_TARGET: BrowserLinkTarget = "system";
+// Default to the built-in browser so chat/terminal links stay inside the app
+// instead of pulling you out into your system browser. ⌘/Ctrl-click still opens
+// in the default browser, and the Integrations setting can switch it back.
+export const DEFAULT_BROWSER_LINK_TARGET: BrowserLinkTarget = "app";
 /**
  * What the address bar searches with when the input is not an address.
  * "custom" uses `browserCustomSearchUrl`, a template with `%s` for the query.
