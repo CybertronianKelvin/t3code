@@ -133,7 +133,7 @@ export function WorkLogDetails({
   followLive = false,
 }: {
   children: ReactNode;
-  kind?: "text" | "panel" | "media";
+  kind?: "text" | "panel" | "media" | "reasoning";
 
   followLive?: boolean;
 }) {
@@ -157,9 +157,14 @@ export function WorkLogDetails({
         "cursor-auto",
         kind === "text"
           ? "ms-7 flex max-h-96 flex-col gap-3 overflow-auto px-0.5 py-1 select-text"
-          : kind === "panel"
-            ? "mt-0.5 mb-1.5 pb-2"
-            : "mt-1",
+          : kind === "reasoning"
+            ? // A thought's own card: a soft tint and a left accent rail mark it
+              // out at a glance and distinguish it from the terminal card, and it
+              // grows to full height (no inner scroll) so it reads as one block.
+              "ms-7 mt-0.5 mb-2 flex flex-col gap-3 rounded-md border-l-2 border-primary/40 bg-muted/30 px-3 py-2 select-text"
+            : kind === "panel"
+              ? "mt-0.5 mb-1.5 pb-2"
+              : "mt-1",
       )}
       onClick={(event) => event.stopPropagation()}
       onPointerDown={(event) => event.stopPropagation()}

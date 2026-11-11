@@ -122,7 +122,7 @@ export function ReasoningTraceContent({ entries }: { entries: ReadonlyArray<Time
   const isStreaming = (entry: TimelineWorkEntry) =>
     isWorking && entry.runId === latestRunId && entry.toolLifecycleStatus === "inProgress";
   return (
-    <WorkLogDetails followLive={entries.some(isStreaming)}>
+    <WorkLogDetails kind="reasoning" followLive={entries.some(isStreaming)}>
       {entries.map((entry) => (
         <ChatMarkdown
           key={entry.id}

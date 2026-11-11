@@ -50,13 +50,25 @@ export function ShellCommandBlock({ command }: { command: string }) {
   const code = withVisibleControlCharacters(command.trim());
   if (!code) return null;
   const plain = <PlainWords code={code} />;
+  // A terminal card: a bordered, tinted panel with a prompt header so a command
+  // reads as its own thing at a glance, distinct from reasoning and plain text.
+  // It grows to full height — no inner scroll box to fight — and carries its own
+  // mono/whitespace styling so it no longer depends on a parent wrapper.
   return (
-    <div className="text-foreground/85">
-      <RenderErrorBoundary fallback={plain} resetKeys={[code]}>
-        <Suspense fallback={plain}>
-          <HighlightedCommand code={code} theme={resolvedTheme} />
-        </Suspense>
-      </RenderErrorBoundary>
+    <div className="overflow-hidden rounded-md border border-border/70 bg-muted/40">
+      <div className="flex items-center gap-1.5 border-b border-border/60 bg-muted/60 px-2.5 py-1 font-mono text-[11px] text-muted-foreground select-none">
+        <span aria-hidden className="text-foreground/70">
+          {">_"}
+        </span>
+        <span>terminal</span>
+      </div>
+      <div className="px-3 py-2 font-mono text-(length:--font-size-code,var(--text-2xs)) leading-relaxed whitespace-pre-wrap break-words text-foreground/85 select-text">
+        <RenderErrorBoundary fallback={plain} resetKeys={[code]}>
+          <Suspense fallback={plain}>
+            <HighlightedCommand code={code} theme={resolvedTheme} />
+          </Suspense>
+        </RenderErrorBoundary>
+      </div>
     </div>
   );
 }
