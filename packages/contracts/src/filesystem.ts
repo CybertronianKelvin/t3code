@@ -26,15 +26,24 @@ export const FilesystemGetMetadataResult = Schema.Struct({
 });
 export type FilesystemGetMetadataResult = typeof FilesystemGetMetadataResult.Type;
 
+// The folder picker behind "add project" wants folders alone, so that stays the default.
+export const FilesystemBrowseInclude = Schema.Literals(["directories", "all"]);
+export type FilesystemBrowseInclude = typeof FilesystemBrowseInclude.Type;
+
+export const FILESYSTEM_BROWSE_INCLUDE_DEFAULT: FilesystemBrowseInclude = "directories";
+
 export const FilesystemBrowseInput = Schema.Struct({
   partialPath: TrimmedNonEmptyString.check(Schema.isMaxLength(FILESYSTEM_PATH_MAX_LENGTH)),
   cwd: Schema.optional(TrimmedNonEmptyString.check(Schema.isMaxLength(FILESYSTEM_PATH_MAX_LENGTH))),
+  include: Schema.optional(FilesystemBrowseInclude),
 });
 export type FilesystemBrowseInput = typeof FilesystemBrowseInput.Type;
 
 export const FilesystemBrowseEntry = Schema.Struct({
   name: TrimmedNonEmptyString,
   fullPath: TrimmedNonEmptyString,
+  // A symlink is reported as whatever it points at; a broken one is "other".
+  kind: Schema.Literals(["file", "directory", "other"]),
 });
 export type FilesystemBrowseEntry = typeof FilesystemBrowseEntry.Type;
 

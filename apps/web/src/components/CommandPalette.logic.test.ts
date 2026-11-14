@@ -781,9 +781,9 @@ describe("buildThreadActionItems", () => {
 describe("filterPinnedBrowseEntries", () => {
   it("matches an existing pinned destination without Windows casing", () => {
     const windowsEntries = [
-      { name: "Repo", fullPath: "C:\\projects\\Repo" },
-      { name: "work", fullPath: "C:\\projects\\work" },
-    ];
+      { name: "Repo", fullPath: "C:\\projects\\Repo", kind: "directory" },
+      { name: "work", fullPath: "C:\\projects\\work", kind: "directory" },
+    ] as const;
     expect(
       filterPinnedBrowseEntries({
         browseEntries: windowsEntries,

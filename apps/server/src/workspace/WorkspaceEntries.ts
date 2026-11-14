@@ -9,6 +9,7 @@ import * as RcMap from "effect/RcMap";
 import * as Schema from "effect/Schema";
 
 import type {
+  FilesystemBrowseEntry,
   FilesystemBrowseInput,
   FilesystemBrowseResult,
   ProjectEntry,
@@ -21,6 +22,7 @@ import type {
   ProjectSearchEntriesInput,
   ProjectSearchEntriesResult,
 } from "@t3tools/contracts";
+import { FILESYSTEM_BROWSE_INCLUDE_DEFAULT } from "@t3tools/contracts";
 import * as HostProcess from "@t3tools/shared/HostProcess";
 import { isExplicitRelativePath, isWindowsAbsolutePath } from "@t3tools/shared/path";
 import { normalizeSearchQuery } from "@t3tools/shared/searchRanking";
@@ -233,23 +235,52 @@ export const make = Effect.gen(function* () {
 
       const showHidden = endsWithSeparator || prefix.startsWith(".");
       const lowerPrefix = prefix.toLowerCase();
-      const entries: Array<{ readonly name: string; readonly fullPath: string }> = [];
-      for (const dirent of dirents) {
-        if (
-          dirent.isDirectory() &&
+      const matched = dirents.filter(
+        (dirent) =>
           dirent.name.toLowerCase().startsWith(lowerPrefix) &&
-          (showHidden || !dirent.name.startsWith("."))
-        ) {
-          entries.push({
-            name: dirent.name,
-            fullPath: path.join(parentPath, dirent.name),
-          });
-        }
+          (showHidden || !dirent.name.startsWith(".")),
+      );
+
+      // Classify in bounded batches; a symlink costs a stat, and directories such as
+      // node_modules hold thousands of them.
+      const kinds: Array<FilesystemBrowseEntry["kind"]> = [];
+      for (let offset = 0; offset < matched.length; offset += SYMLINK_RESOLVE_BATCH_SIZE) {
+        kinds.push(
+          ...(yield* Effect.promise(() =>
+            Promise.all(
+              matched
+                .slice(offset, offset + SYMLINK_RESOLVE_BATCH_SIZE)
+                .map(async (dirent): Promise<FilesystemBrowseEntry["kind"]> => {
+                  if (dirent.isDirectory()) return "directory";
+                  if (dirent.isFile()) return "file";
+                  if (!dirent.isSymbolicLink()) return "other";
+                  // A link is what it points at; a broken or unreadable one is neither.
+                  const stat = await NodeFSP.stat(path.join(parentPath, dirent.name)).catch(
+                    () => undefined,
+                  );
+                  if (stat?.isDirectory()) return "directory";
+                  return stat?.isFile() ? "file" : "other";
+                }),
+            ),
+          )),
+        );
       }
+
+      const include = input.include ?? FILESYSTEM_BROWSE_INCLUDE_DEFAULT;
+      const entries = matched.flatMap((dirent, index): FilesystemBrowseEntry[] => {
+        const kind = kinds[index] ?? "other";
+        if (include === "directories" ? kind !== "directory" : kind === "other") return [];
+        return [{ name: dirent.name, fullPath: path.join(parentPath, dirent.name), kind }];
+      });
 
       return {
         parentPath,
-        entries: entries.toSorted((left, right) => left.name.localeCompare(right.name)),
+        // Folders first: a path is built by descending, so they are what the next keystroke needs.
+        entries: entries.toSorted(
+          (left, right) =>
+            Number(right.kind === "directory") - Number(left.kind === "directory") ||
+            left.name.localeCompare(right.name),
+        ),
       };
     },
   );

@@ -811,8 +811,33 @@ it.layer(layerTest, { excludeTestServices: true })("WorkspaceEntries", (it) => {
         expect(directoryResult.entries.map((entry) => entry.name)).toEqual([".config", "config"]);
         expect(hiddenPrefixResult).toEqual({
           parentPath: cwd,
-          entries: [{ name: ".config", fullPath: path.join(cwd, ".config") }],
+          entries: [{ name: ".config", fullPath: path.join(cwd, ".config"), kind: "directory" }],
         });
+      }),
+    );
+
+    it.effect("lists files only in all mode, folders first", () =>
+      Effect.gen(function* () {
+        const workspaceEntries = yield* WorkspaceEntries.WorkspaceEntries;
+        const path = yield* Path.Path;
+        const cwd = yield* makeTempDir({ prefix: "t3code-workspace-browse-all-" });
+        yield* writeTextFile(cwd, "zeta.txt", "");
+        yield* writeTextFile(cwd, "alpha/nested.txt", "");
+        const cwdWithSeparator = yield* appendSeparator(cwd);
+
+        const directoriesOnly = yield* workspaceEntries.browse({
+          partialPath: cwdWithSeparator,
+        });
+        const everything = yield* workspaceEntries.browse({
+          partialPath: cwdWithSeparator,
+          include: "all",
+        });
+
+        expect(directoriesOnly.entries.map((entry) => entry.name)).toEqual(["alpha"]);
+        expect(everything.entries).toEqual([
+          { name: "alpha", fullPath: path.join(cwd, "alpha"), kind: "directory" },
+          { name: "zeta.txt", fullPath: path.join(cwd, "zeta.txt"), kind: "file" },
+        ]);
       }),
     );
 
