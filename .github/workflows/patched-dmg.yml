@@ -19,7 +19,12 @@ jobs:
 
       - name: Install vp (Vite+)
         run: |
-          curl -fsSL https://vite.plus | bash
+          # `curl | bash` reports bash's exit status, so a download failure passes here and
+          # resurfaces as a missing env file in the next step. Fetch first, and retry: the
+          # runner's DNS fails occasionally.
+          curl -fsSL --retry 5 --retry-all-errors --retry-delay 5 \
+            https://vite.plus -o "$RUNNER_TEMP/install-vp.sh"
+          bash "$RUNNER_TEMP/install-vp.sh"
 
       - name: Toolchain check
         run: |
